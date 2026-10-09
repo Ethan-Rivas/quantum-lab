@@ -1,9 +1,10 @@
 services:
   notebook:
-    # Build locally by default. To use a prebuilt image instead:
-    #   QUANTUM_LAB_IMAGE=ghcr.io/<owner>/quantum-lab:latest docker compose up --no-build
-    image: ${QUANTUM_LAB_IMAGE:-quantum-lab:local}
+    # Always built locally from the Dockerfile, never pulled from a registry.
+    # To use the prebuilt image instead, see docker-compose.prebuilt.yml.
+    image: quantum-lab:local
     build: .
+    pull_policy: build
     ports:
       - "127.0.0.1:8888:8888"   # only reachable from your own machine
     volumes:

@@ -1,0 +1,10 @@
+# Use the prebuilt image from GitHub Container Registry instead of building locally:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prebuilt.yml up
+#
+# Replace <your-username> with the GitHub account that publishes the image.
+services:
+  notebook:
+    image: ghcr.io/<your-username>/quantum-lab:latest
+    build: !reset null
+    pull_policy: missing

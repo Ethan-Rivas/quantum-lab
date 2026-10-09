@@ -46,8 +46,10 @@ docker compose up --no-deps notebook
 Every push to `main`, plus a weekly rebuild, publishes a multi-arch image to GitHub Container Registry:
 
 ```bash
-QUANTUM_LAB_IMAGE=ghcr.io/<your-username>/quantum-lab:latest docker compose up --no-build
+docker compose -f docker-compose.yml -f docker-compose.prebuilt.yml up
 ```
+
+(Set your username in `docker-compose.prebuilt.yml` first.)
 
 Tags: `latest`, a date tag such as `2026-10-08`, and the commit SHA. Pin a date tag if you need a notebook to keep working exactly as it does today.
 
@@ -87,6 +89,8 @@ All frameworks working.
 **Jupyter token.** The default token is `quantum` and the port is bound to `127.0.0.1` only. To change the token: `JUPYTER_TOKEN=something docker compose up`.
 
 **pyQuil 5.** pyQuil 4.22 deprecated the QVM, PyQVM and quilc, and pyQuil 5 removes them in favor of new simulators. `requirements.txt` pins `pyquil<5` so this lab keeps working; you'll see deprecation notices, which the notebook silences.
+
+**"pull access denied for quantum-lab"?** You have an older copy of `docker-compose.yml` that lets Docker look for the image on Docker Hub. Update to the latest version, or run `docker compose up --build`.
 
 **Port 8888 already in use?** Change the left side of the port mapping in `docker-compose.yml`, for example `"127.0.0.1:8889:8888"`.
 
