@@ -96,6 +96,14 @@ All frameworks working.
 
 The [workflow](.github/workflows/build.yml) builds the image, starts QVM and quilc, runs the smoke test against the real servers, and executes the starter notebook. It runs on every push and PR, and **every Monday** it picks up new library releases. If an upstream release breaks something, the weekly run fails before anyone else hits it. Only after the tests pass does it publish the amd64 and arm64 images.
 
+## Roadmap
+
+- [ ] **Visual circuit builder.** Add [Quirk](https://github.com/Strilanc/Quirk), an open-source drag-and-drop simulator, as a fourth compose service so it runs offline alongside JupyterLab.
+- [ ] **Quirk ⇄ notebook bridge.** A `from_quirk("<link>")` helper that turns a Quirk circuit into Qiskit, Cirq and pyQuil circuits, plus `to_quirk(circuit)` for the reverse. The plumbing already works through Cirq and OpenQASM (`cirq.quirk_url_to_circuit` → `cirq.qasm` → `qiskit.qasm2.loads`).
+- [ ] **Desktop app experience.** Document using [JupyterLab Desktop](https://github.com/jupyterlab/jupyterlab-desktop) with the container, or a small launcher that starts everything and opens both tools in one window.
+- [ ] **More tutorial notebooks:** Deutsch–Jozsa, quantum teleportation, noise models, and running on real IBM hardware.
+- [ ] **pyQuil 5 migration** to its new built-in simulators, once they're stable.
+
 ## Contributing
 
 Ideas and PRs welcome. New tutorial notebooks are especially useful (algorithms, noise models, framework comparisons). Please make sure `smoke_test.py` still passes.
