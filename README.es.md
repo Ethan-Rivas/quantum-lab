@@ -72,6 +72,8 @@ docker compose up --no-deps notebook
 docker compose -f docker-compose.yml -f docker-compose.prebuilt.yml up
 ```
 
+Eso usa `latest`, que se reconstruye cada semana. Para quedarte en una versión específica, cambia la imagen en `docker-compose.prebuilt.yml` por una etiqueta de versión como `ghcr.io/ethan-rivas/quantum-lab:0.1.0`.
+
 **Sin Docker.** Si solo necesitas Qiskit y Cirq, [uv](https://docs.astral.sh/uv/) puede correr el laboratorio directamente (`brew install uv` en Mac):
 
 ```bash

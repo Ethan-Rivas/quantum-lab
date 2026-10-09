@@ -3,6 +3,7 @@ name: Build, test and publish
 on:
   push:
     branches: [main]
+    tags: ["v*"]           # a release tag such as v0.1.0 also publishes image tags 0.1.0 and 0.1
   pull_request:
   schedule:
     - cron: "17 6 * * 1"   # every Monday: rebuild with the latest library releases
@@ -69,8 +70,10 @@ jobs:
         with:
           images: ${{ steps.image.outputs.name }}
           tags: |
-            type=raw,value=latest
-            type=raw,value={{date 'YYYY-MM-DD'}}
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value={{date 'YYYY-MM-DD'}},enable={{is_default_branch}}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
             type=sha
 
       - name: Build and push (amd64 + arm64)
