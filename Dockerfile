@@ -8,10 +8,12 @@ ENV PYTHONUNBUFFERED=1 \
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-COPY requirements.txt /opt/quantum-lab/requirements.txt
+COPY --chmod=644 requirements.txt /opt/quantum-lab/requirements.txt
 RUN uv pip install --system -r /opt/quantum-lab/requirements.txt
 
-COPY tests/smoke_test.py /opt/quantum-lab/smoke_test.py
+# --chmod: the copied file keeps its host permissions otherwise, and a file that
+# only its owner can read on the host can't be read by the "quantum" user here.
+COPY --chmod=644 tests/smoke_test.py /opt/quantum-lab/smoke_test.py
 
 RUN useradd --create-home --uid 1000 --shell /bin/bash quantum \
  && mkdir -p /home/quantum/work \
