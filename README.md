@@ -84,7 +84,7 @@ All frameworks working.
 
 ## Notes
 
-**Apple Silicon.** The notebook image is native arm64. Rigetti only publishes `qvm` and `quilc` for x86, so Docker Desktop emulates those two. That's fine for learning-size circuits. If they're slow or crash, enable *Settings → General → Use Rosetta for x86/amd64 emulation* in Docker Desktop.
+**Apple Silicon.** The notebook and quilc images run natively on arm64. Only `qvm` is x86-only, so Docker Desktop emulates it; that's fine for learning-size circuits. If it's slow, enable *Settings → General → Use Rosetta for x86_64/amd64 emulation on Apple Silicon* in Docker Desktop.
 
 **Jupyter token.** The default token is `quantum` and the port is bound to `127.0.0.1` only. To change the token: `JUPYTER_TOKEN=something docker compose up`.
 
@@ -97,7 +97,12 @@ docker compose ps            # are qvm and quilc "running"?
 docker compose logs quilc    # any crash or "fatal error"?
 ```
 
-On Apple Silicon, quilc is the usual culprit, because it's an x86-only program that has to be emulated. Turn on *Docker Desktop → Settings → General → Use Rosetta for x86_64/amd64 emulation on Apple Silicon*, click *Apply & restart*, then run `docker compose up --force-recreate`.
+If quilc shows "Spawning server at (tcp://*:5555)" but never answers, it's probably the x86 version running under emulation, where it freezes. Older copies of this repo forced that version. Update `docker-compose.yml`, then fetch the native image and recreate the container:
+
+```bash
+docker compose pull quilc
+docker compose up -d --force-recreate quilc
+```
 
 **"pull access denied for quantum-lab"?** You have an older copy of `docker-compose.yml` that lets Docker look for the image on Docker Hub. Update to the latest version, or run `docker compose up --build`.
 

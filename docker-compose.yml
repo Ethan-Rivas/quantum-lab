@@ -18,13 +18,13 @@ services:
       - quilc
 
   # Rigetti's simulator and compiler, used by pyQuil.
-  # Published for x86 only; Docker Desktop emulates them on Apple Silicon.
   qvm:
     image: rigetti/qvm:latest
-    platform: linux/amd64
+    platform: linux/amd64   # x86-only image; Docker Desktop emulates it on Apple Silicon
     command: -S
 
   quilc:
+    # Multi-arch image (amd64 + arm64): runs natively on Apple Silicon.
+    # Don't force linux/amd64 here; quilc freezes under emulation.
     image: rigetti/quilc:latest
-    platform: linux/amd64
     command: -R
