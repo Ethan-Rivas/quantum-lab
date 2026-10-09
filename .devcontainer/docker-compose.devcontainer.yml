@@ -1,0 +1,5 @@
+# Overrides for the dev container: mount the whole repo so VS Code can edit it.
+services:
+  notebook:
+    volumes:
+      - ..:/workspace:cached

@@ -1,0 +1,8 @@
+version: 2
+updates:
+  # Keeps the workflow's actions current. The Python base image is pinned to 3.12
+  # on purpose (pyQuil needs it), so it's left out here.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

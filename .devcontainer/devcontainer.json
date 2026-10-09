@@ -1,0 +1,21 @@
+{
+  // Open this repo in VS Code ("Reopen in Container") or GitHub Codespaces
+  // and you get the same environment as `docker compose up`, QVM and quilc included.
+  "name": "quantum-lab",
+  "dockerComposeFile": ["../docker-compose.yml", "docker-compose.devcontainer.yml"],
+  "service": "notebook",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [8888],
+  "portsAttributes": {
+    "8888": { "label": "JupyterLab (token: quantum)" }
+  },
+  "postAttachCommand": "python /opt/quantum-lab/smoke_test.py",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python", "ms-toolsai.jupyter"],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python"
+      }
+    }
+  }
+}

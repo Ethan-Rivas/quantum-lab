@@ -1,0 +1,29 @@
+services:
+  notebook:
+    # Build locally by default. To use a prebuilt image instead:
+    #   QUANTUM_LAB_IMAGE=ghcr.io/<owner>/quantum-lab:latest docker compose up --no-build
+    image: ${QUANTUM_LAB_IMAGE:-quantum-lab:local}
+    build: .
+    ports:
+      - "127.0.0.1:8888:8888"   # only reachable from your own machine
+    volumes:
+      - ./notebooks:/home/quantum/work
+    environment:
+      JUPYTER_TOKEN: ${JUPYTER_TOKEN:-quantum}
+      QCS_SETTINGS_APPLICATIONS_QVM_URL: http://qvm:5000
+      QCS_SETTINGS_APPLICATIONS_QUILC_URL: tcp://quilc:5555
+    depends_on:
+      - qvm
+      - quilc
+
+  # Rigetti's simulator and compiler, used by pyQuil.
+  # Published for x86 only; Docker Desktop emulates them on Apple Silicon.
+  qvm:
+    image: rigetti/qvm:latest
+    platform: linux/amd64
+    command: -S
+
+  quilc:
+    image: rigetti/quilc:latest
+    platform: linux/amd64
+    command: -R

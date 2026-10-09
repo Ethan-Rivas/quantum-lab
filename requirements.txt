@@ -1,0 +1,12 @@
+# Quantum frameworks
+qiskit[visualization]>=2.0,<3
+qiskit-aer>=0.17
+cirq>=1.4,<2
+# pyQuil 5 removes the QVM, PyQVM and quilc integration this lab relies on.
+# Stay on 4.x until the lab is migrated to the new Quax-based simulators.
+pyquil>=4.14,<5
+
+# Notebook environment
+jupyterlab>=4.2
+ipywidgets>=8
+matplotlib>=3.8
