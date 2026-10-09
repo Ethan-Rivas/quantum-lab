@@ -3,14 +3,14 @@
 **Qiskit, Cirq and pyQuil in a local JupyterLab, with one command.** No Anaconda and no dependency wrangling. Runs natively on Apple Silicon.
 
 ```bash
-git clone https://github.com/<your-username>/quantum-lab.git
+git clone https://github.com/Ethan-Rivas/quantum-lab.git
 cd quantum-lab
 docker compose up
 ```
 
 Then open **http://127.0.0.1:8888/lab?token=quantum** and start with `00-hello-quantum.ipynb`.
 
-![Build](https://github.com/<your-username>/quantum-lab/actions/workflows/build.yml/badge.svg)
+![Build](https://github.com/Ethan-Rivas/quantum-lab/actions/workflows/build.yml/badge.svg)
 
 ---
 
@@ -48,8 +48,6 @@ Every push to `main`, plus a weekly rebuild, publishes a multi-arch image to Git
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.prebuilt.yml up
 ```
-
-(Set your username in `docker-compose.prebuilt.yml` first.)
 
 Tags: `latest`, a date tag such as `2026-10-08`, and the commit SHA. Pin a date tag if you need a notebook to keep working exactly as it does today.
 
