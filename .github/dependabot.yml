@@ -6,3 +6,7 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    # One combined pull request per month instead of one per action.
+    groups:
+      github-actions:
+        patterns: ["*"]
