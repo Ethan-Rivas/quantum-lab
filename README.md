@@ -129,7 +129,8 @@ Every Monday, GitHub Actions rebuilds the lab with the latest library releases a
 - [ ] **Drag-and-drop circuit builder.** Add [Quirk](https://github.com/Strilanc/Quirk) to the lab, so you can build circuits visually and offline.
 - [ ] **From Quirk to notebook.** A `from_quirk("<link>")` helper that turns a circuit built in Quirk into Qiskit, Cirq and pyQuil code, plus `to_quirk(circuit)` for the other direction.
 - [ ] **Desktop app.** Open the lab in its own window with [JupyterLab Desktop](https://github.com/jupyterlab/jupyterlab-desktop) instead of a browser tab.
-- [ ] **More notebooks:** Deutsch–Jozsa, quantum teleportation, noise, and running on real IBM hardware.
+- [ ] **More notebooks:** Deutsch–Jozsa, quantum teleportation and noise.
+- [ ] **Run on a real quantum computer.** A notebook that sends your circuit to one of IBM's quantum processors with a free account, then compares the results with the simulator so you can see what real hardware noise looks like.
 - [ ] **pyQuil 5**, once its new simulators are stable.
 
 ## Contributing

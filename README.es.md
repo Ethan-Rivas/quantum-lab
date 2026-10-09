@@ -129,7 +129,8 @@ Cada lunes, GitHub Actions reconstruye el laboratorio con las versiones más rec
 - [ ] **Constructor visual de circuitos.** Agregar [Quirk](https://github.com/Strilanc/Quirk) al laboratorio, para armar circuitos arrastrando compuertas, sin conexión a internet.
 - [ ] **De Quirk al notebook.** Una función `from_quirk("<enlace>")` que convierta un circuito armado en Quirk a código de Qiskit, Cirq y pyQuil, y `to_quirk(circuito)` para el sentido contrario.
 - [ ] **App de escritorio.** Abrir el laboratorio en su propia ventana con [JupyterLab Desktop](https://github.com/jupyterlab/jupyterlab-desktop) en lugar de una pestaña del navegador.
-- [ ] **Más notebooks:** Deutsch–Jozsa, teletransportación cuántica, ruido y ejecución en hardware real de IBM.
+- [ ] **Más notebooks:** Deutsch–Jozsa, teletransportación cuántica y ruido.
+- [ ] **Ejecutar en una computadora cuántica real.** Un notebook que envía tu circuito a uno de los procesadores cuánticos de IBM con una cuenta gratuita, y compara los resultados con el simulador para que veas cómo se ve el ruido del hardware real.
 - [ ] **pyQuil 5**, cuando sus nuevos simuladores sean estables.
 
 ## Contribuir
