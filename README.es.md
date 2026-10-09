@@ -8,7 +8,7 @@
 
 [Read in English](README.md)
 
-Empecé a aprender Qiskit en Google Colab porque instalarlo en mi Mac con Anaconda siempre terminaba fallando. Colab funciona, pero en cada sesión hay que reinstalar los paquetes, y se desconecta si te alejas un rato. Este repo es el entorno que yo quería: los mismos notebooks, todo ya instalado y tus archivos guardados en tu propia máquina.
+Armé esto mientras estudio mi maestría en computación cuántica. La parte cuántica fue la divertida. Lo complicado fue tener un entorno local que funcionara: instalar Qiskit con Anaconda siempre terminaba fallando en mi Mac, y no encontré un entorno listo que hiciera lo que necesitaba, así que terminé usando Google Colab. Colab funciona, pero en cada sesión hay que reinstalar los paquetes, y se desconecta si te alejas un rato. Este repo es el entorno que yo quería: los mismos notebooks, todo ya instalado y tus archivos guardados en tu propia máquina. Lo comparto para que el siguiente se salte la instalación y vaya directo a los qubits.
 
 ## Qué necesitas
 

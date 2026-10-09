@@ -8,7 +8,7 @@
 
 [Leer en español](README.es.md)
 
-I started learning Qiskit on Google Colab because getting it installed locally with Anaconda kept failing on my Mac. Colab works, but every session starts with reinstalling packages, and it disconnects when you step away. This repo is the setup I wanted instead: the same notebooks, everything already installed, and your files saved on your own machine.
+I built this while studying for my master's degree in quantum computing. The quantum part was the fun part. Getting a local setup to work was not: installing Qiskit with Anaconda kept failing on my Mac, and I couldn't find a ready-made environment that did what I needed, so I ended up on Google Colab. Colab works, but every session starts with reinstalling packages, and it disconnects when you step away. This repo is the setup I wanted instead: the same notebooks, everything already installed, and your files saved on your own machine. I'm sharing it so the next person can skip the setup and get straight to the qubits.
 
 ## What you need
 
