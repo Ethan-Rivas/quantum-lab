@@ -1,6 +1,20 @@
 # quantum-lab
 
-**Qiskit, Cirq and pyQuil in a local JupyterLab, with one command.** No Anaconda and no dependency wrangling. Runs natively on Apple Silicon.
+[![Build](https://github.com/Ethan-Rivas/quantum-lab/actions/workflows/build.yml/badge.svg)](https://github.com/Ethan-Rivas/quantum-lab/actions/workflows/build.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg)
+
+**A quantum computing lab that runs on your own computer.** Qiskit, Cirq and pyQuil in JupyterLab, set up with one command.
+
+[Leer en español](README.es.md)
+
+I started learning Qiskit on Google Colab because getting it installed locally with Anaconda kept failing on my Mac. Colab works, but every session starts with reinstalling packages, and it disconnects when you step away. This repo is the setup I wanted instead: the same notebooks, everything already installed, and your files saved on your own machine.
+
+## What you need
+
+[Docker Desktop](https://www.docker.com/products/docker-desktop/) for macOS, Windows or Linux. That's it. Python, Jupyter and the quantum libraries all live inside the containers, so nothing gets installed on your system.
+
+## Quick start
 
 ```bash
 git clone https://github.com/Ethan-Rivas/quantum-lab.git
@@ -8,121 +22,121 @@ cd quantum-lab
 docker compose up
 ```
 
-Then open **http://127.0.0.1:8888/lab?token=quantum** and start with `00-hello-quantum.ipynb`.
+The first run downloads and builds everything, so give it a few minutes. After that it starts in seconds.
 
-![Build](https://github.com/Ethan-Rivas/quantum-lab/actions/workflows/build.yml/badge.svg)
+Then open **http://127.0.0.1:8888/lab?token=quantum**, open `00-hello-quantum.ipynb` and run the cells with **Shift + Enter**.
 
----
+When you're done, press **Ctrl + C** in the terminal, or run `docker compose down`. Your notebooks are saved in the `notebooks/` folder, so nothing is lost when the lab shuts down.
 
-## What's inside
+## Your first experiment
 
-| | |
+The starter notebook builds a **Bell state**, the simplest example of entanglement:
+
+1. A Hadamard gate puts the first qubit in a superposition of 0 and 1.
+2. A CNOT gate links the second qubit to the first.
+3. Both qubits are measured, 1,000 times.
+
+You'll get `00` about half the time and `11` the other half, and never `01` or `10`. Each qubit on its own is a coin flip, but the two always agree. That's entanglement.
+
+The notebook runs this same circuit in Qiskit, Cirq and pyQuil and plots the results side by side, so you can compare how each framework writes it. It ends with a small example of Grover's search algorithm.
+
+## What's in the lab
+
+| Tool | What it is |
 |---|---|
-| **Qiskit 2.x** + **Aer** simulator | IBM, with circuit drawing and histograms |
-| **Cirq 1.x** | Google |
-| **pyQuil 4.x** + **QVM** + **quilc** | Rigetti's simulator and compiler, each in its own container |
-| **JupyterLab 4** | Python 3.12 |
-| **Starter notebook** | A Bell state in all three frameworks side by side, plus Grover's search |
+| **Qiskit** + **Aer** | IBM's framework, and the most widely used. Aer is its fast simulator. IBM also lets you run Qiskit circuits on its real quantum computers. |
+| **Cirq** | Google's framework. Lower level than Qiskit, and closer to how the hardware is laid out. |
+| **pyQuil** + **QVM** + **quilc** | Rigetti's framework. quilc compiles your circuit into the gates a real chip supports, and the QVM simulates it. Each runs in its own container. |
+| **JupyterLab** | The same notebook interface Colab is built on, with a file browser, tabs and a terminal. |
 
-Notebooks live in `./notebooks` on your machine, so your work survives container restarts and rebuilds.
+## Coming from Colab?
 
-## Four ways to run it
+- Download any notebook from Colab (*File → Download → .ipynb*) and drop it into `notebooks/`.
+- Remove Colab-only lines such as `from google.colab import drive`.
+- Skip the `!pip install qiskit` cells. Everything is already installed.
+- There's no GPU, but quantum simulators at learning scale run on the CPU anyway.
 
-### 1. Docker Compose (everything, recommended)
+## Other ways to run it
 
-```bash
-docker compose up        # first run builds the image, takes a few minutes
-docker compose down      # stop everything
-```
-
-To skip the Rigetti servers (pyQuil then uses its built-in Python simulator):
+**Without the Rigetti servers.** Faster to start. pyQuil uses its built-in Python simulator instead:
 
 ```bash
 docker compose up --no-deps notebook
 ```
 
-### 2. Prebuilt image (no build step)
+**VS Code or GitHub Codespaces.** Open the repo in VS Code and choose *Reopen in Container*, or on GitHub click *Code → Codespaces → Create codespace*. Codespaces runs the whole lab in the cloud, which makes it a good Colab replacement when you're not on your own computer.
 
-Every push to `main`, plus a weekly rebuild, publishes a multi-arch image to GitHub Container Registry:
+**Prebuilt image.** Skip the build step and download a ready-made image:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.prebuilt.yml up
 ```
 
-Tags: `latest`, a date tag such as `2026-10-08`, and the commit SHA. Pin a date tag if you need a notebook to keep working exactly as it does today.
-
-### 3. VS Code or GitHub Codespaces
-
-Open the repo in VS Code and choose **Reopen in Container**, or click **Code → Codespaces → Create codespace** on GitHub. You get the same environment, QVM and quilc included, and the smoke test runs when it attaches. Codespaces works as a cloud alternative to Colab.
-
-### 4. No Docker at all
-
-With [uv](https://docs.astral.sh/uv/) installed (`brew install uv`):
+**Without Docker.** If you only need Qiskit and Cirq, [uv](https://docs.astral.sh/uv/) can run the lab directly (`brew install uv` on a Mac):
 
 ```bash
 uvx -p 3.12 --from jupyter-core --with jupyterlab --with "qiskit[visualization]" \
     --with qiskit-aer --with cirq --with "pyquil<5" jupyter lab
 ```
 
-Qiskit and Cirq work fully. pyQuil falls back to its built-in simulator, since QVM and quilc aren't running. The `-p 3.12` matters: pyQuil's dependencies don't install on Python 3.13 yet.
+pyQuil falls back to its built-in simulator here. Keep the `-p 3.12`, because pyQuil doesn't install on Python 3.13 yet.
 
-## Check that it works
+## Check that everything works
+
+With the lab running, open a second terminal and run:
 
 ```bash
-docker compose run --rm notebook python /opt/quantum-lab/smoke_test.py
+docker compose exec notebook python /opt/quantum-lab/smoke_test.py
 ```
 
+It runs a Bell state in each framework:
+
 ```
-PASS  Qiskit + Aer                 {'00': 252, '11': 248}
+PASS  Qiskit + Aer                 {'00': 257, '11': 243}
 PASS  Cirq                         {'00': 235, '11': 265}
-PASS  pyQuil + quilc + QVM         {'00': 251, '11': 249}
+PASS  pyQuil + quilc + QVM         {'00': 255, '11': 245}
 
 All frameworks working.
 ```
 
-## Notes
+## Troubleshooting
 
-**Apple Silicon.** The notebook and quilc images run natively on arm64. Only `qvm` is x86-only, so Docker Desktop emulates it; that's fine for learning-size circuits. If it's slow, enable *Settings → General → Use Rosetta for x86_64/amd64 emulation on Apple Silicon* in Docker Desktop.
+**The browser asks for a password or token.** Type `quantum`, or open the link above, which includes it.
 
-**Jupyter token.** The default token is `quantum` and the port is bound to `127.0.0.1` only. To change the token: `JUPYTER_TOKEN=something docker compose up`.
-
-**pyQuil 5.** pyQuil 4.22 deprecated the QVM, PyQVM and quilc, and pyQuil 5 removes them in favor of new simulators. `requirements.txt` pins `pyquil<5` so this lab keeps working; you'll see deprecation notices, which the notebook silences.
-
-**pyQuil says "QVM/quilc not available" or the pyQuil cell is slow?** The notebook waits up to 30 seconds for Rigetti's servers, then falls back to pyQuil's built-in simulator, so everything still runs. To get the real servers working, first check them:
+**The pyQuil cell says "QVM/quilc not available".** The notebook waits up to 30 seconds for Rigetti's servers, then switches to pyQuil's built-in simulator, so you still get results. To find out why the servers didn't answer:
 
 ```bash
-docker compose ps            # are qvm and quilc "running"?
-docker compose logs quilc    # any crash or "fatal error"?
+docker compose ps            # are qvm and quilc running?
+docker compose logs quilc    # any errors?
 ```
 
-If quilc shows "Spawning server at (tcp://*:5555)" but never answers, it's probably the x86 version running under emulation, where it freezes. Older copies of this repo forced that version. Update `docker-compose.yml`, then fetch the native image and recreate the container:
+On Apple Silicon Macs, the QVM is an x86 program that Docker Desktop has to emulate. If it's slow, turn on *Settings → General → Use Rosetta for x86_64/amd64 emulation on Apple Silicon* in Docker Desktop.
 
-```bash
-docker compose pull quilc
-docker compose up -d --force-recreate quilc
-```
+**Port 8888 is already in use.** In `docker-compose.yml`, change `"127.0.0.1:8888:8888"` to `"127.0.0.1:8889:8888"` and use port 8889 in the browser.
 
-**"pull access denied for quantum-lab"?** You have an older copy of `docker-compose.yml` that lets Docker look for the image on Docker Hub. Update to the latest version, or run `docker compose up --build`.
+## Tips
 
-**Port 8888 already in use?** Change the left side of the port mapping in `docker-compose.yml`, for example `"127.0.0.1:8889:8888"`.
+- **Change the token.** On macOS and Linux run `JUPYTER_TOKEN=yourtoken docker compose up`. In Windows PowerShell run `$env:JUPYTER_TOKEN="yourtoken"; docker compose up`.
+- **Add a package.** Add it to `requirements.txt` and run `docker compose build`. For a quick test, `%pip install <package>` in a notebook cell works until the container restarts.
+- **pyQuil 5.** Version 5 drops the QVM and quilc in favor of new simulators, so this lab stays on pyQuil 4 for now. The deprecation notices it prints are expected.
 
-**Adding packages.** Add them to `requirements.txt` and run `docker compose build`. For a quick experiment, `%pip install <package>` in a notebook cell works until the container is recreated.
+## How it stays up to date
 
-## How it stays current
-
-The [workflow](.github/workflows/build.yml) builds the image, starts QVM and quilc, runs the smoke test against the real servers, and executes the starter notebook. It runs on every push and PR, and **every Monday** it picks up new library releases. If an upstream release breaks something, the weekly run fails before anyone else hits it. Only after the tests pass does it publish the amd64 and arm64 images.
+Every Monday, GitHub Actions rebuilds the lab with the latest library releases and runs the full test, real Rigetti servers included. If a new release breaks something, the weekly build catches it first. The prebuilt image is only published after the tests pass.
 
 ## Roadmap
 
-- [ ] **Visual circuit builder.** Add [Quirk](https://github.com/Strilanc/Quirk), an open-source drag-and-drop simulator, as a fourth compose service so it runs offline alongside JupyterLab.
-- [ ] **Quirk ⇄ notebook bridge.** A `from_quirk("<link>")` helper that turns a Quirk circuit into Qiskit, Cirq and pyQuil circuits, plus `to_quirk(circuit)` for the reverse. The plumbing already works through Cirq and OpenQASM (`cirq.quirk_url_to_circuit` → `cirq.qasm` → `qiskit.qasm2.loads`).
-- [ ] **Desktop app experience.** Document using [JupyterLab Desktop](https://github.com/jupyterlab/jupyterlab-desktop) with the container, or a small launcher that starts everything and opens both tools in one window.
-- [ ] **More tutorial notebooks:** Deutsch–Jozsa, quantum teleportation, noise models, and running on real IBM hardware.
-- [ ] **pyQuil 5 migration** to its new built-in simulators, once they're stable.
+- [ ] **Drag-and-drop circuit builder.** Add [Quirk](https://github.com/Strilanc/Quirk) to the lab, so you can build circuits visually and offline.
+- [ ] **From Quirk to notebook.** A `from_quirk("<link>")` helper that turns a circuit built in Quirk into Qiskit, Cirq and pyQuil code, plus `to_quirk(circuit)` for the other direction.
+- [ ] **Desktop app.** Open the lab in its own window with [JupyterLab Desktop](https://github.com/jupyterlab/jupyterlab-desktop) instead of a browser tab.
+- [ ] **More notebooks:** Deutsch–Jozsa, quantum teleportation, noise, and running on real IBM hardware.
+- [ ] **pyQuil 5**, once its new simulators are stable.
 
 ## Contributing
 
-Ideas and PRs welcome. New tutorial notebooks are especially useful (algorithms, noise models, framework comparisons). Please make sure `smoke_test.py` still passes.
+Ideas, bug reports and pull requests are welcome. New notebooks are the most useful contribution, whether that's an algorithm, a framework comparison or a concept explained step by step. Notebooks in Spanish are welcome too. Before opening a pull request, check that the smoke test still passes.
+
+If you try the lab on Windows, Linux or an Intel Mac, I'd like to hear how it went. Open an issue either way.
 
 ## License
 
