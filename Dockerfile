@@ -8,6 +8,9 @@ ENV PYTHONUNBUFFERED=1 \
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
+# Create the folder before copying into it. COPY --chmod also applies its mode to
+# any folder it has to create, and a 644 folder can't be entered.
+WORKDIR /opt/quantum-lab
 COPY --chmod=644 requirements.txt /opt/quantum-lab/requirements.txt
 RUN uv pip install --system -r /opt/quantum-lab/requirements.txt
 
