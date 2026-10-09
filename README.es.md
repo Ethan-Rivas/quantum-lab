@@ -131,6 +131,7 @@ Cada lunes, GitHub Actions reconstruye el laboratorio con las versiones más rec
 - [ ] **App de escritorio.** Abrir el laboratorio en su propia ventana con [JupyterLab Desktop](https://github.com/jupyterlab/jupyterlab-desktop) en lugar de una pestaña del navegador.
 - [ ] **Más notebooks:** Deutsch–Jozsa, teletransportación cuántica y ruido.
 - [ ] **Ejecutar en una computadora cuántica real.** Un notebook que envía tu circuito a uno de los procesadores cuánticos de IBM con una cuenta gratuita, y compara los resultados con el simulador para que veas cómo se ve el ruido del hardware real.
+- [ ] **PennyLane.** Agregar el framework de Xanadu para machine learning cuántico, con su propio notebook sobre cómo entrenar un circuito cuántico pequeño.
 - [ ] **pyQuil 5**, cuando sus nuevos simuladores sean estables.
 
 ## Contribuir

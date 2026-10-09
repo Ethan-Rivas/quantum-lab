@@ -131,6 +131,7 @@ Every Monday, GitHub Actions rebuilds the lab with the latest library releases a
 - [ ] **Desktop app.** Open the lab in its own window with [JupyterLab Desktop](https://github.com/jupyterlab/jupyterlab-desktop) instead of a browser tab.
 - [ ] **More notebooks:** Deutsch–Jozsa, quantum teleportation and noise.
 - [ ] **Run on a real quantum computer.** A notebook that sends your circuit to one of IBM's quantum processors with a free account, then compares the results with the simulator so you can see what real hardware noise looks like.
+- [ ] **PennyLane.** Add Xanadu's framework for quantum machine learning, with its own notebook on training a small quantum circuit.
 - [ ] **pyQuil 5**, once its new simulators are stable.
 
 ## Contributing
