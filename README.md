@@ -90,6 +90,15 @@ All frameworks working.
 
 **pyQuil 5.** pyQuil 4.22 deprecated the QVM, PyQVM and quilc, and pyQuil 5 removes them in favor of new simulators. `requirements.txt` pins `pyquil<5` so this lab keeps working; you'll see deprecation notices, which the notebook silences.
 
+**pyQuil says "QVM/quilc not available" or the pyQuil cell is slow?** The notebook waits up to 30 seconds for Rigetti's servers, then falls back to pyQuil's built-in simulator, so everything still runs. To get the real servers working, first check them:
+
+```bash
+docker compose ps            # are qvm and quilc "running"?
+docker compose logs quilc    # any crash or "fatal error"?
+```
+
+On Apple Silicon, quilc is the usual culprit, because it's an x86-only program that has to be emulated. Turn on *Docker Desktop → Settings → General → Use Rosetta for x86_64/amd64 emulation on Apple Silicon*, click *Apply & restart*, then run `docker compose up --force-recreate`.
+
 **"pull access denied for quantum-lab"?** You have an older copy of `docker-compose.yml` that lets Docker look for the image on Docker Hub. Update to the latest version, or run `docker compose up --build`.
 
 **Port 8888 already in use?** Change the left side of the port mapping in `docker-compose.yml`, for example `"127.0.0.1:8889:8888"`.

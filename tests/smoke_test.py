@@ -11,6 +11,7 @@ Pass --require-servers to fail instead of falling back (used in CI).
 import collections
 import os
 import sys
+import threading
 import warnings
 
 SHOTS = 500
@@ -22,6 +23,30 @@ def check_bell(name, counts):
     ok = total == SHOTS and not bad and counts.get("00", 0) > 0 and counts.get("11", 0) > 0
     print(f"{'PASS' if ok else 'FAIL'}  {name:<28} {dict(sorted(counts.items()))}")
     return ok
+
+
+def run_with_time_limit(fn, seconds):
+    """Run fn() but give up after `seconds`.
+
+    pyQuil's quilc version check ignores compiler_timeout, so an unresponsive
+    or stopped quilc container would otherwise hang forever.
+    """
+    out = {}
+
+    def target():
+        try:
+            out["value"] = fn()
+        except BaseException as exc:
+            out["error"] = exc
+
+    worker = threading.Thread(target=target, daemon=True)
+    worker.start()
+    worker.join(seconds)
+    if worker.is_alive():
+        raise TimeoutError(f"no answer from QVM/quilc within {seconds}s")
+    if "error" in out:
+        raise out["error"]
+    return out["value"]
 
 
 def test_qiskit():
@@ -64,12 +89,15 @@ def test_pyquil(require_servers):
         bits = qc.run(program).get_register_map()["ro"]
         return collections.Counter("".join(str(int(b)) for b in row) for row in bits)
 
+    def on_servers():
+        qc = get_qc("2q-qvm", compiler_timeout=20, execution_timeout=20)
+        executable = qc.compile(bell())  # exercises quilc
+        return run(qc, executable)
+
     use_servers = require_servers or "QCS_SETTINGS_APPLICATIONS_QVM_URL" in os.environ
     if use_servers:
         try:
-            qc = get_qc("2q-qvm")
-            executable = qc.compile(bell())  # exercises quilc
-            return check_bell("pyQuil + quilc + QVM", run(qc, executable))
+            return check_bell("pyQuil + quilc + QVM", run_with_time_limit(on_servers, 30))
         except Exception as exc:
             if require_servers:
                 print(f"FAIL  {'pyQuil + quilc + QVM':<28} {type(exc).__name__}: {exc}")
@@ -82,4 +110,7 @@ def test_pyquil(require_servers):
 if __name__ == "__main__":
     results = [test_qiskit(), test_cirq(), test_pyquil("--require-servers" in sys.argv)]
     print("\nAll frameworks working." if all(results) else "\nSome checks failed.")
-    sys.exit(0 if all(results) else 1)
+    sys.stdout.flush()
+    # Hard exit: a timed-out pyQuil call may still be stuck in a background thread,
+    # and a normal interpreter shutdown would abort on it.
+    os._exit(0 if all(results) else 1)
