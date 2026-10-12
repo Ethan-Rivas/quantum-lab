@@ -6,11 +6,19 @@ This service has no published port; only the containers in this compose project 
     GET  /health    what this bridge can do
     POST /notebook  {"name": "bell-qiskit", "notebook": {...}} saves notebooks/qanvas/<name>.ipynb
                     and answers with its path and the JupyterLab link that opens it
+    POST /run       {"qasm": "...", "shots": 1000} runs OpenQASM 2.0 on Qiskit Aer and answers counts
+    POST /import    {"language": "qiskit", "code": "..."} runs the code and answers the circuit it
+                    builds as OpenQASM 2.0
+
+/run and /import happen in runner.py, in a separate process with a time limit.
 """
 
 import json
 import os
 import re
+import subprocess
+import sys
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import quote, urlparse
@@ -24,6 +32,11 @@ JUPYTER_URL = os.environ.get("BRIDGE_JUPYTER_URL", "http://127.0.0.1:8888").rstr
 JUPYTER_TOKEN = os.environ.get("JUPYTER_TOKEN", "")
 MAX_BODY = 5 * 1024 * 1024
 MAX_COPIES = 999
+MAX_SHOTS = 100_000
+RUNNER = Path(__file__).with_name("runner.py")
+TIME_LIMITS = {"run": 120, "import": 20}
+# A 24-qubit state takes 256 MB, so Aer runs one circuit at a time.
+AER = threading.Semaphore(1)
 
 LOCAL_HOST = re.compile(r"(localhost|127\.0\.0\.1|\[::1\])(:\d+)?")
 # GitHub Codespaces forwards each port to its own https://<codespace>-<port>.app.github.dev address.
@@ -61,6 +74,26 @@ def save(notebook, name):
     raise OSError(f"{MAX_COPIES} notebooks named {name} already exist")
 
 
+def run_job(job):
+    """Runs one job in runner.py; the answer, or an error when it fails or takes too long."""
+    try:
+        done = subprocess.run(
+            [sys.executable, str(RUNNER)],
+            input=json.dumps(job),
+            capture_output=True,
+            text=True,
+            timeout=TIME_LIMITS[job["task"]],
+            env={**os.environ, "MPLBACKEND": "Agg"},
+        )
+    except subprocess.TimeoutExpired:
+        return {"error": {"code": "timeout", "detail": TIME_LIMITS[job["task"]]}}
+    try:
+        return json.loads(done.stdout)
+    except json.JSONDecodeError:
+        print(f"The runner failed: {done.stderr[-2000:]}", flush=True)
+        return {"error": {"code": "failed"}}
+
+
 class Handler(BaseHTTPRequestHandler):
     def reply(self, status, body):
         data = json.dumps(body).encode()
@@ -83,11 +116,13 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(404, {"error": "not-found"})
         if jupyter_base(self.headers.get("Host")) is None:
             return self.reply(403, {"error": "forbidden"})
-        self.reply(200, {"version": VERSION, "features": ["notebook"]})
+        self.reply(200, {"version": VERSION, "features": ["notebook", "run", "import"], "maxQubits": 24})
 
     def do_POST(self):
-        if self.path != "/notebook":
+        handlers = {"/notebook": self.save_notebook, "/run": self.run_circuit, "/import": self.import_code}
+        if self.path not in handlers:
             return self.reply(404, {"error": "not-found"})
+        # /import runs the code it receives, so every write or run passes the same checks.
         base = jupyter_base(self.headers.get("Host"))
         if base is None or not self.same_origin() or self.headers.get("Content-Type", "").split(";")[0] != "application/json":
             return self.reply(403, {"error": "forbidden"})
@@ -99,6 +134,29 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(413, {"error": "too-large"})
         try:
             body = json.loads(self.rfile.read(length))
+        except Exception:
+            return self.reply(400, {"error": "invalid"})
+        if not isinstance(body, dict):
+            return self.reply(400, {"error": "invalid"})
+        handlers[self.path](body, base)
+
+    def run_circuit(self, body, base):
+        qasm, shots = body.get("qasm"), body.get("shots", 1000)
+        if not isinstance(qasm, str) or not isinstance(shots, int) or not 1 <= shots <= MAX_SHOTS:
+            return self.reply(400, {"error": "invalid"})
+        with AER:
+            answer = run_job({"task": "run", "qasm": qasm, "shots": shots})
+        self.reply(422 if "error" in answer else 200, answer)
+
+    def import_code(self, body, base):
+        language, code = body.get("language"), body.get("code")
+        if language not in ("qiskit", "cirq", "pyquil") or not isinstance(code, str):
+            return self.reply(400, {"error": "invalid"})
+        answer = run_job({"task": "import", "language": language, "code": code})
+        self.reply(422 if "error" in answer else 200, answer)
+
+    def save_notebook(self, body, base):
+        try:
             name = body["name"]
             notebook = nbformat.from_dict(body["notebook"])
             nbformat.validate(notebook)

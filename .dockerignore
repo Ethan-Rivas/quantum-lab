@@ -3,3 +3,4 @@
 !tests/smoke_test.py
 !jupyter_server_config.py
 !bridge/bridge.py
+!bridge/runner.py

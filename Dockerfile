@@ -18,7 +18,7 @@ RUN uv pip install --system -r /opt/quantum-lab/requirements.txt
 # only its owner can read on the host can't be read by the "quantum" user here.
 COPY --chmod=644 tests/smoke_test.py /opt/quantum-lab/smoke_test.py
 COPY --chmod=644 jupyter_server_config.py /usr/local/etc/jupyter/jupyter_server_config.py
-COPY --chmod=644 bridge/bridge.py /opt/quantum-lab/bridge.py
+COPY --chmod=644 bridge/bridge.py bridge/runner.py /opt/quantum-lab/
 
 RUN useradd --create-home --uid 1000 --shell /bin/bash quantum \
  && mkdir -p /home/quantum/work \

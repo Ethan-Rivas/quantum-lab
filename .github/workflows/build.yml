@@ -74,6 +74,12 @@ jobs:
           test "$(status -H 'Origin: http://127.0.0.1:8080')" = 201
           test -f notebooks/qanvas/ci-check.ipynb
           test -f notebooks/qanvas/ci-check-2.ipynb
+          # A circuit above Qanvas's browser limit runs on Aer, with q0 first in the answer.
+          qasm='OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[14];\ncreg c[14];\nx q[0];\nmeasure q -> c;\n'
+          curl -fsS -X POST -H 'Origin: http://127.0.0.1:8080' -H 'Content-Type: application/json' -d "{\"qasm\":\"$qasm\",\"shots\":10}" "http://127.0.0.1:8080/api/run" | grep -q '"10000000000000": 10'
+
+      - name: Lab bridge tests (Aer runs and code import)
+        run: docker compose run --rm -v ./bridge:/opt/bridge -v ./tests:/opt/tests notebook python /opt/tests/test_bridge.py
 
       - name: Execute starter notebook
         run: |
