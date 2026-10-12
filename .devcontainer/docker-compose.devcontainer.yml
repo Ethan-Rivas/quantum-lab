@@ -3,3 +3,6 @@ services:
   notebook:
     volumes:
       - ..:/workspace:cached
+    environment:
+      # Codespaces reaches JupyterLab under its own address; see jupyter_server_config.py.
+      QUANTUM_LAB_ALLOW_REMOTE_ACCESS: "1"

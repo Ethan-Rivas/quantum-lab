@@ -119,6 +119,8 @@ docker compose logs quilc    # any errors?
 
 On Apple Silicon Macs, the QVM is an x86 program that Docker Desktop has to emulate. If it's slow, turn on *Settings → General → Use Rosetta for x86_64/amd64 emulation on Apple Silicon* in Docker Desktop.
 
+**JupyterLab answers "403" at an address other than 127.0.0.1 or localhost.** To stop other websites from reaching it through your browser, JupyterLab only answers at its local addresses. If you really need another one, such as a reverse proxy you set up, run `QUANTUM_LAB_ALLOW_REMOTE_ACCESS=1 docker compose up` and add `QUANTUM_LAB_ALLOW_REMOTE_ACCESS: ${QUANTUM_LAB_ALLOW_REMOTE_ACCESS:-0}` under the notebook's `environment` in `docker-compose.yml`. Codespaces and VS Code dev containers already do this.
+
 **Port 8888 is already in use.** In `docker-compose.yml`, change `"127.0.0.1:8888:8888"` to `"127.0.0.1:8889:8888"` and use port 8889 in the browser.
 
 **Port 8080 is already in use.** In `docker-compose.yml`, change Qanvas's `"127.0.0.1:8080:8080"` to `"127.0.0.1:8081:8080"` and open http://127.0.0.1:8081.
