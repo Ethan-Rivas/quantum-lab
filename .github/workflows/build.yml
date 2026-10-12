@@ -34,6 +34,15 @@ jobs:
           done
           exit 1
 
+      - name: Check that the Qanvas circuit builder answers
+        run: |
+          docker compose up -d qanvas
+          for attempt in 1 2 3 4 5; do
+            curl -fsS http://127.0.0.1:8080/ | grep -q '<title>Qanvas</title>' && exit 0
+            sleep 2
+          done
+          exit 1
+
       - name: Execute starter notebook
         run: |
           docker compose run --rm notebook \

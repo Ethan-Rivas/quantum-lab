@@ -26,6 +26,8 @@ La primera vez descarga y construye todo, así que tarda unos minutos. Después 
 
 Luego abre **http://127.0.0.1:8888/lab?token=quantum**, abre `00-hello-quantum.ipynb` y ejecuta las celdas con **Shift + Enter**.
 
+Para armar circuitos de forma visual, abre **http://127.0.0.1:8080** para usar [Qanvas](https://github.com/Ethan-Rivas/qanvas/blob/main/README.es.md), el constructor de circuitos del laboratorio.
+
 Cuando termines, presiona **Ctrl + C** en la terminal o ejecuta `docker compose down`. Tus notebooks se guardan en la carpeta `notebooks/`, así que no pierdes nada al apagar el laboratorio.
 
 ## Tu primer experimento
@@ -48,6 +50,7 @@ El notebook ejecuta este mismo circuito en Qiskit, Cirq y pyQuil y grafica los r
 | **Cirq** | El framework de Google. De más bajo nivel que Qiskit, y más cercano a cómo está organizado el hardware. |
 | **pyQuil** + **QVM** + **quilc** | El framework de Rigetti. quilc compila tu circuito a las compuertas que soporta un chip real, y la QVM lo simula. Cada uno corre en su propio contenedor. |
 | **JupyterLab** | La misma interfaz de notebooks en la que está basado Colab, con explorador de archivos, pestañas y terminal. |
+| **Qanvas** | Un constructor de circuitos donde arrastras compuertas. Ves los resultados en vivo, recorres el circuito paso a paso con explicaciones y copias el código de Qiskit, Cirq o pyQuil a un notebook. También está en línea en [ethan-rivas.github.io/qanvas](https://ethan-rivas.github.io/qanvas/). |
 
 ## ¿Vienes de Colab?
 
@@ -101,6 +104,8 @@ PASS  pyQuil + quilc + QVM         {'00': 255, '11': 245}
 All frameworks working.
 ```
 
+Para revisar Qanvas, abre http://127.0.0.1:8080, o ejecuta `curl -fsS http://127.0.0.1:8080/ | grep '<title>Qanvas</title>'`.
+
 ## Solución de problemas
 
 **El navegador pide una contraseña o token.** Escribe `quantum`, o abre el enlace de arriba, que ya lo incluye.
@@ -116,6 +121,8 @@ En Macs con Apple Silicon, la QVM es un programa x86 que Docker Desktop tiene qu
 
 **El puerto 8888 ya está en uso.** En `docker-compose.yml`, cambia `"127.0.0.1:8888:8888"` por `"127.0.0.1:8889:8888"` y usa el puerto 8889 en el navegador.
 
+**El puerto 8080 ya está en uso.** En `docker-compose.yml`, cambia el `"127.0.0.1:8080:8080"` de Qanvas por `"127.0.0.1:8081:8080"` y abre http://127.0.0.1:8081.
+
 ## Tips
 
 - **Cambiar el token.** En macOS y Linux ejecuta `JUPYTER_TOKEN=tutoken docker compose up`. En PowerShell de Windows ejecuta `$env:JUPYTER_TOKEN="tutoken"; docker compose up`.
@@ -128,8 +135,8 @@ Cada lunes, GitHub Actions reconstruye el laboratorio con las versiones más rec
 
 ## Próximamente
 
-- [ ] **Constructor visual de circuitos.** Agregar [Quirk](https://github.com/Strilanc/Quirk) al laboratorio, para armar circuitos arrastrando compuertas, sin conexión a internet.
-- [ ] **De Quirk al notebook.** Una función `from_quirk("<enlace>")` que convierta un circuito armado en Quirk a código de Qiskit, Cirq y pyQuil, y `to_quirk(circuito)` para el sentido contrario.
+- [x] **Constructor visual de circuitos.** [Qanvas](https://github.com/Ethan-Rivas/qanvas/blob/main/README.es.md) corre en http://127.0.0.1:8080: arma circuitos de forma visual, recórrelos paso a paso con explicaciones y copia código de Qiskit, Cirq o pyQuil a un notebook.
+- [ ] **Del constructor de circuitos al notebook.** Un botón "Abrir en notebook" en Qanvas que mande el circuito directo a JupyterLab, y correr circuitos más grandes con Qiskit Aer desde Qanvas (planeado para [Qanvas 0.2](https://github.com/Ethan-Rivas/qanvas/blob/main/README.es.md#próximamente)).
 - [ ] **App de escritorio.** Abrir el laboratorio en su propia ventana con [JupyterLab Desktop](https://github.com/jupyterlab/jupyterlab-desktop) en lugar de una pestaña del navegador.
 - [ ] **Más notebooks:** Deutsch–Jozsa, teletransportación cuántica y ruido.
 - [ ] **Ejecutar en una computadora cuántica real.** Un notebook que envía tu circuito a uno de los procesadores cuánticos de IBM con una cuenta gratuita, y compara los resultados con el simulador para que veas cómo se ve el ruido del hardware real.

@@ -26,6 +26,8 @@ The first run downloads and builds everything, so give it a few minutes. After t
 
 Then open **http://127.0.0.1:8888/lab?token=quantum**, open `00-hello-quantum.ipynb` and run the cells with **Shift + Enter**.
 
+To build circuits visually, open **http://127.0.0.1:8080** for [Qanvas](https://github.com/Ethan-Rivas/qanvas), the lab's circuit builder.
+
 When you're done, press **Ctrl + C** in the terminal, or run `docker compose down`. Your notebooks are saved in the `notebooks/` folder, so nothing is lost when the lab shuts down.
 
 ## Your first experiment
@@ -48,6 +50,7 @@ The notebook runs this same circuit in Qiskit, Cirq and pyQuil and plots the res
 | **Cirq** | Google's framework. Lower level than Qiskit, and closer to how the hardware is laid out. |
 | **pyQuil** + **QVM** + **quilc** | Rigetti's framework. quilc compiles your circuit into the gates a real chip supports, and the QVM simulates it. Each runs in its own container. |
 | **JupyterLab** | The same notebook interface Colab is built on, with a file browser, tabs and a terminal. |
+| **Qanvas** | A drag-and-drop circuit builder. Watch the results update live, step through the circuit with explanations, and copy the Qiskit, Cirq or pyQuil code into a notebook. Also online at [ethan-rivas.github.io/qanvas](https://ethan-rivas.github.io/qanvas/). |
 
 ## Coming from Colab?
 
@@ -101,6 +104,8 @@ PASS  pyQuil + quilc + QVM         {'00': 255, '11': 245}
 All frameworks working.
 ```
 
+To check Qanvas, open http://127.0.0.1:8080, or run `curl -fsS http://127.0.0.1:8080/ | grep '<title>Qanvas</title>'`.
+
 ## Troubleshooting
 
 **The browser asks for a password or token.** Type `quantum`, or open the link above, which includes it.
@@ -116,6 +121,8 @@ On Apple Silicon Macs, the QVM is an x86 program that Docker Desktop has to emul
 
 **Port 8888 is already in use.** In `docker-compose.yml`, change `"127.0.0.1:8888:8888"` to `"127.0.0.1:8889:8888"` and use port 8889 in the browser.
 
+**Port 8080 is already in use.** In `docker-compose.yml`, change Qanvas's `"127.0.0.1:8080:8080"` to `"127.0.0.1:8081:8080"` and open http://127.0.0.1:8081.
+
 ## Tips
 
 - **Change the token.** On macOS and Linux run `JUPYTER_TOKEN=yourtoken docker compose up`. In Windows PowerShell run `$env:JUPYTER_TOKEN="yourtoken"; docker compose up`.
@@ -128,8 +135,8 @@ Every Monday, GitHub Actions rebuilds the lab with the latest library releases a
 
 ## Roadmap
 
-- [ ] **Drag-and-drop circuit builder.** Add [Quirk](https://github.com/Strilanc/Quirk) to the lab, so you can build circuits visually and offline.
-- [ ] **From Quirk to notebook.** A `from_quirk("<link>")` helper that turns a circuit built in Quirk into Qiskit, Cirq and pyQuil code, plus `to_quirk(circuit)` for the other direction.
+- [x] **Drag-and-drop circuit builder.** [Qanvas](https://github.com/Ethan-Rivas/qanvas) runs at http://127.0.0.1:8080: build circuits visually, step through them with explanations and copy Qiskit, Cirq or pyQuil code into a notebook.
+- [ ] **From circuit builder to notebook.** An "Open in notebook" button in Qanvas that drops the circuit straight into JupyterLab, and running bigger circuits with Qiskit Aer from Qanvas (planned for [Qanvas 0.2](https://github.com/Ethan-Rivas/qanvas#roadmap)).
 - [ ] **Desktop app.** Open the lab in its own window with [JupyterLab Desktop](https://github.com/jupyterlab/jupyterlab-desktop) instead of a browser tab.
 - [ ] **More notebooks:** Deutsch–Jozsa, quantum teleportation and noise.
 - [ ] **Run on a real quantum computer.** A notebook that sends your circuit to one of IBM's quantum processors with a free account, then compares the results with the simulator so you can see what real hardware noise looks like.

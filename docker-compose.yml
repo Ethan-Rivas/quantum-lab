@@ -28,3 +28,9 @@ services:
     # Don't force linux/amd64 here; quilc freezes under emulation.
     image: rigetti/quilc:latest
     command: -R
+
+  # Qanvas, the visual circuit builder: https://github.com/Ethan-Rivas/qanvas
+  qanvas:
+    image: ghcr.io/ethan-rivas/qanvas:0.1.0
+    ports:
+      - "127.0.0.1:8080:8080"   # only reachable from your own machine

@@ -5,9 +5,10 @@
   "dockerComposeFile": ["../docker-compose.yml", "docker-compose.devcontainer.yml"],
   "service": "notebook",
   "workspaceFolder": "/workspace",
-  "forwardPorts": [8888],
+  "forwardPorts": [8888, 8080],
   "portsAttributes": {
-    "8888": { "label": "JupyterLab (token: quantum)" }
+    "8888": { "label": "JupyterLab (token: quantum)" },
+    "8080": { "label": "Qanvas circuit builder" }
   },
   "postAttachCommand": "python /opt/quantum-lab/smoke_test.py",
   "customizations": {
