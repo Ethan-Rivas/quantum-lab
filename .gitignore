@@ -5,3 +5,6 @@ __pycache__/
 .DS_Store
 .env
 .Trash-*/
+
+# Notebooks Qanvas saves through the lab bridge
+notebooks/qanvas/

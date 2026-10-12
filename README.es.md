@@ -50,7 +50,7 @@ El notebook ejecuta este mismo circuito en Qiskit, Cirq y pyQuil y grafica los r
 | **Cirq** | El framework de Google. De más bajo nivel que Qiskit, y más cercano a cómo está organizado el hardware. |
 | **pyQuil** + **QVM** + **quilc** | El framework de Rigetti. quilc compila tu circuito a las compuertas que soporta un chip real, y la QVM lo simula. Cada uno corre en su propio contenedor. |
 | **JupyterLab** | La misma interfaz de notebooks en la que está basado Colab, con explorador de archivos, pestañas y terminal. |
-| **Qanvas** | Un constructor de circuitos donde arrastras compuertas. Ves los resultados en vivo, recorres el circuito paso a paso con explicaciones y copias el código de Qiskit, Cirq o pyQuil a un notebook. También está en línea en [ethan-rivas.github.io/qanvas](https://ethan-rivas.github.io/qanvas/). |
+| **Qanvas** | Un constructor de circuitos donde arrastras compuertas. Ves los resultados en vivo, recorres el circuito paso a paso con explicaciones y, con un clic, lo abres en JupyterLab como un notebook de Qiskit, Cirq o pyQuil listo para correr. También está en línea en [ethan-rivas.github.io/qanvas](https://ethan-rivas.github.io/qanvas/). |
 
 ## ¿Vienes de Colab?
 
@@ -121,7 +121,9 @@ En Macs con Apple Silicon, la QVM es un programa x86 que Docker Desktop tiene qu
 
 **JupyterLab responde "403" en una dirección que no es 127.0.0.1 ni localhost.** Para que otros sitios web no puedan llegar a él a través de tu navegador, JupyterLab solo responde en sus direcciones locales. Si de verdad necesitas otra, como un proxy inverso que configuraste, ejecuta `QUANTUM_LAB_ALLOW_REMOTE_ACCESS=1 docker compose up` y agrega `QUANTUM_LAB_ALLOW_REMOTE_ACCESS: ${QUANTUM_LAB_ALLOW_REMOTE_ACCESS:-0}` en el `environment` del notebook en `docker-compose.yml`. Codespaces y los dev containers de VS Code ya lo hacen.
 
-**El puerto 8888 ya está en uso.** En `docker-compose.yml`, cambia `"127.0.0.1:8888:8888"` por `"127.0.0.1:8889:8888"` y usa el puerto 8889 en el navegador.
+**El puerto 8888 ya está en uso.** En `docker-compose.yml`, cambia `"127.0.0.1:8888:8888"` por `"127.0.0.1:8889:8888"` y usa el puerto 8889 en el navegador. Para que "Abrir en notebook" de Qanvas encuentre JupyterLab, cambia también `BRIDGE_JUPYTER_URL` a `http://127.0.0.1:8889`.
+
+**Qanvas no muestra el botón "Abrir en notebook", o dice que no pudo enviar el notebook.** El botón necesita el servicio `lab-bridge`, que guarda los notebooks en `notebooks/qanvas/`. Revisa que esté corriendo con `docker compose ps lab-bridge` y busca errores con `docker compose logs lab-bridge`. En Linux, la carpeta `notebooks/` debe tener permiso de escritura para el usuario del contenedor (uid 1000).
 
 **El puerto 8080 ya está en uso.** En `docker-compose.yml`, cambia el `"127.0.0.1:8080:8080"` de Qanvas por `"127.0.0.1:8081:8080"` y abre http://127.0.0.1:8081.
 

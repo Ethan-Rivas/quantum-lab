@@ -54,6 +54,20 @@ jobs:
           # Another name pointed at 127.0.0.1 (DNS rebinding) is refused.
           test "$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: evil.example:8888' http://127.0.0.1:8888/api)" = 403
 
+      - name: Check that Qanvas saves notebooks through the lab bridge
+        run: |
+          chmod a+w notebooks   # the bridge runs as uid 1000, the runner's checkout belongs to another user
+          docker compose up -d lab-bridge qanvas
+          for attempt in 1 2 3 4 5; do
+            curl -fsS http://127.0.0.1:8080/api/health | grep -q '"notebook"' && break
+            sleep 2
+          done
+          notebook='{"name":"ci-check","notebook":{"cells":[],"metadata":{},"nbformat":4,"nbformat_minor":5}}'
+          # Writes only come from Qanvas's own page.
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d "$notebook" http://127.0.0.1:8080/api/notebook)" = 403
+          curl -fsS -X POST -H 'Origin: http://127.0.0.1:8080' -H 'Content-Type: application/json' -d "$notebook" http://127.0.0.1:8080/api/notebook
+          test -f notebooks/qanvas/ci-check.ipynb
+
       - name: Execute starter notebook
         run: |
           docker compose run --rm notebook \

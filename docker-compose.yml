@@ -34,3 +34,20 @@ services:
     image: ghcr.io/ethan-rivas/qanvas:0.1.1
     ports:
       - "127.0.0.1:8080:8080"   # only reachable from your own machine
+    environment:
+      QANVAS_BRIDGE_URL: http://lab-bridge:8000   # Qanvas forwards /api/ here
+    depends_on:
+      - lab-bridge
+
+  # Lets Qanvas save notebooks into notebooks/qanvas/. No published port: only Qanvas reaches it.
+  lab-bridge:
+    image: quantum-lab:local
+    pull_policy: never   # the image the notebook service builds
+    command: ["python", "/opt/quantum-lab/bridge.py"]
+    volumes:
+      - ./notebooks:/home/quantum/work
+    environment:
+      JUPYTER_TOKEN: ${JUPYTER_TOKEN:-quantum}
+      BRIDGE_JUPYTER_URL: http://127.0.0.1:8888   # where your browser opens JupyterLab
+    depends_on:
+      - notebook
