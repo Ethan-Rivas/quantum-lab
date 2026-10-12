@@ -3,8 +3,9 @@
 Qanvas's web server forwards /api/ here, so the browser only ever talks to Qanvas's own address.
 This service has no published port; only the containers in this compose project can reach it.
 
-    GET  /health    what this bridge can do, and the address JupyterLab opens at
+    GET  /health    what this bridge can do
     POST /notebook  {"name": "bell-qiskit", "notebook": {...}} saves notebooks/qanvas/<name>.ipynb
+                    and answers with its path and the JupyterLab link that opens it
 """
 
 import json
@@ -22,23 +23,42 @@ FOLDER = "qanvas"
 JUPYTER_URL = os.environ.get("BRIDGE_JUPYTER_URL", "http://127.0.0.1:8888").rstrip("/")
 JUPYTER_TOKEN = os.environ.get("JUPYTER_TOKEN", "")
 MAX_BODY = 5 * 1024 * 1024
+MAX_COPIES = 999
+
+LOCAL_HOST = re.compile(r"(localhost|127\.0\.0\.1|\[::1\])(:\d+)?")
+# GitHub Codespaces forwards each port to its own https://<codespace>-<port>.app.github.dev address.
+CODESPACES_HOST = re.compile(r"([a-z0-9-]+)-\d+\.app\.github\.dev")
 
 
-def free_path(name):
-    """notebooks/qanvas/<name>.ipynb, or <name>-2.ipynb and so on, so nothing is ever overwritten."""
+def jupyter_base(host):
+    """Where the browser that sent `host` reaches JupyterLab, or None for a host Qanvas isn't served at.
+
+    Checking the host stops DNS rebinding: a website that points its own name at 127.0.0.1 can make
+    the browser treat this bridge as same-origin, but its requests still carry its own name.
+    """
+    host = host or ""
+    if LOCAL_HOST.fullmatch(host):
+        return JUPYTER_URL
+    codespace = CODESPACES_HOST.fullmatch(host)
+    if codespace:
+        return f"https://{codespace[1]}-{urlparse(JUPYTER_URL).port or 8888}.app.github.dev"
+    return None
+
+
+def save(notebook, name):
+    """Writes notebooks/qanvas/<name>.ipynb, or <name>-2.ipynb and so on; never replaces a file."""
     folder = NOTEBOOKS / FOLDER
     folder.mkdir(exist_ok=True)
-    path = folder / f"{name}.ipynb"
-    n = 2
-    while path.exists():
-        path = folder / f"{name}-{n}.ipynb"
-        n += 1
-    return path
-
-
-def jupyter_link(relative):
-    link = f"{JUPYTER_URL}/lab/tree/{quote(relative)}"
-    return f"{link}?token={quote(JUPYTER_TOKEN)}" if JUPYTER_TOKEN else link
+    for n in range(1, MAX_COPIES + 1):
+        path = folder / (f"{name}.ipynb" if n == 1 else f"{name}-{n}.ipynb")
+        try:
+            # "x" fails if the file exists, so two saves at the same moment can't pick the same name.
+            with open(path, "x", encoding="utf-8") as file:
+                nbformat.write(notebook, file)
+            return path
+        except FileExistsError:
+            continue
+    raise OSError(f"{MAX_COPIES} notebooks named {name} already exist")
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -61,15 +81,21 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path != "/health":
             return self.reply(404, {"error": "not-found"})
+        if jupyter_base(self.headers.get("Host")) is None:
+            return self.reply(403, {"error": "forbidden"})
         self.reply(200, {"version": VERSION, "features": ["notebook"]})
 
     def do_POST(self):
         if self.path != "/notebook":
             return self.reply(404, {"error": "not-found"})
-        if not self.same_origin() or self.headers.get("Content-Type", "").split(";")[0] != "application/json":
+        base = jupyter_base(self.headers.get("Host"))
+        if base is None or not self.same_origin() or self.headers.get("Content-Type", "").split(";")[0] != "application/json":
             return self.reply(403, {"error": "forbidden"})
-        length = int(self.headers.get("Content-Length") or 0)
-        if length > MAX_BODY:
+        try:
+            length = int(self.headers.get("Content-Length", ""))
+        except ValueError:
+            return self.reply(411, {"error": "length-required"})
+        if not 0 <= length <= MAX_BODY:
             return self.reply(413, {"error": "too-large"})
         try:
             body = json.loads(self.rfile.read(length))
@@ -81,16 +107,16 @@ class Handler(BaseHTTPRequestHandler):
         if not isinstance(name, str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,63}", name):
             return self.reply(400, {"error": "invalid-name"})
         try:
-            path = free_path(name)
-            nbformat.write(notebook, path)
+            path = save(notebook, name)
         except OSError as error:
             print(f"Couldn't save the notebook: {error}", flush=True)
             return self.reply(500, {"error": "write-failed"})
         relative = path.relative_to(NOTEBOOKS).as_posix()
-        self.reply(201, {"path": relative, "url": jupyter_link(relative)})
+        link = f"{base}/lab/tree/{quote(relative)}"
+        self.reply(201, {"path": relative, "url": f"{link}?token={quote(JUPYTER_TOKEN)}" if JUPYTER_TOKEN else link})
 
     def log_message(self, format, *args):
-        print(f"{self.command} {self.path} {args[1] if len(args) > 1 else ''}", flush=True)
+        print(format % args, flush=True)
 
 
 if __name__ == "__main__":

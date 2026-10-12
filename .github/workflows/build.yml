@@ -58,15 +58,22 @@ jobs:
         run: |
           chmod a+w notebooks   # the bridge runs as uid 1000, the runner's checkout belongs to another user
           docker compose up -d lab-bridge qanvas
-          for attempt in 1 2 3 4 5; do
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
             curl -fsS http://127.0.0.1:8080/api/health | grep -q '"notebook"' && break
+            [ "$attempt" = 10 ] && { echo "The lab bridge never answered through Qanvas"; exit 1; }
             sleep 2
           done
+          url=http://127.0.0.1:8080/api/notebook
           notebook='{"name":"ci-check","notebook":{"cells":[],"metadata":{},"nbformat":4,"nbformat_minor":5}}'
-          # Writes only come from Qanvas's own page.
-          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d "$notebook" http://127.0.0.1:8080/api/notebook)" = 403
-          curl -fsS -X POST -H 'Origin: http://127.0.0.1:8080' -H 'Content-Type: application/json' -d "$notebook" http://127.0.0.1:8080/api/notebook
+          status() { curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' "$@" -d "$notebook" "$url"; }
+          # Writes only come from Qanvas's own page, at an address Qanvas is really served at.
+          test "$(status)" = 403
+          test "$(status -H 'Origin: http://evil.example')" = 403
+          test "$(status -H 'Host: evil.example:8080' -H 'Origin: http://evil.example:8080')" = 403
+          test "$(status -H 'Origin: http://127.0.0.1:8080')" = 201
+          test "$(status -H 'Origin: http://127.0.0.1:8080')" = 201
           test -f notebooks/qanvas/ci-check.ipynb
+          test -f notebooks/qanvas/ci-check-2.ipynb
 
       - name: Execute starter notebook
         run: |
