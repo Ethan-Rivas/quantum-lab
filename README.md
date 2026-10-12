@@ -50,7 +50,7 @@ The notebook runs this same circuit in Qiskit, Cirq and pyQuil and plots the res
 | **Cirq** | Google's framework. Lower level than Qiskit, and closer to how the hardware is laid out. |
 | **pyQuil** + **QVM** + **quilc** | Rigetti's framework. quilc compiles your circuit into the gates a real chip supports, and the QVM simulates it. Each runs in its own container. |
 | **JupyterLab** | The same notebook interface Colab is built on, with a file browser, tabs and a terminal. |
-| **Qanvas** | A drag-and-drop circuit builder. Watch the results update live, step through the circuit with explanations, and open it as a ready-to-run Qiskit, Cirq or pyQuil notebook in JupyterLab with one click. Also online at [ethan-rivas.github.io/qanvas](https://ethan-rivas.github.io/qanvas/). |
+| **Qanvas** | A drag-and-drop circuit builder. Watch the results update live, step through the circuit with explanations, and open it as a ready-to-run Qiskit, Cirq or pyQuil notebook in JupyterLab with one click. In the lab it also runs circuits of up to 24 qubits on Qiskit Aer and lets you edit the Qiskit, Cirq or pyQuil code directly. Also online at [ethan-rivas.github.io/qanvas](https://ethan-rivas.github.io/qanvas/). |
 
 ## Coming from Colab?
 
