@@ -140,7 +140,7 @@ Every Monday, GitHub Actions rebuilds the lab with the latest library releases a
 ## Roadmap
 
 - [x] **Drag-and-drop circuit builder.** [Qanvas](https://github.com/Ethan-Rivas/qanvas) runs at http://127.0.0.1:8080: build circuits visually, step through them with explanations and copy Qiskit, Cirq or pyQuil code into a notebook.
-- [ ] **From circuit builder to notebook.** An "Open in notebook" button in Qanvas that drops the circuit straight into JupyterLab, and running bigger circuits with Qiskit Aer from Qanvas (planned for [Qanvas 0.2](https://github.com/Ethan-Rivas/qanvas#roadmap)).
+- [x] **From circuit builder to notebook.** An "Open in notebook" button in Qanvas that drops the circuit straight into JupyterLab, and running bigger circuits with Qiskit Aer from Qanvas.
 - [ ] **Desktop app.** Open the lab in its own window with [JupyterLab Desktop](https://github.com/jupyterlab/jupyterlab-desktop) instead of a browser tab.
 - [ ] **More notebooks:** Deutsch–Jozsa, quantum teleportation and noise.
 - [ ] **Run on a real quantum computer.** A notebook that sends your circuit to one of IBM's quantum processors with a free account, then compares the results with the simulator so you can see what real hardware noise looks like.
