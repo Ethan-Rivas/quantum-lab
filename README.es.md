@@ -127,6 +127,8 @@ En Macs con Apple Silicon, la QVM es un programa x86 que Docker Desktop tiene qu
 
 **El puerto 8080 ya está en uso.** En `docker-compose.yml`, cambia el `"127.0.0.1:8080:8080"` de Qanvas por `"127.0.0.1:8081:8080"` y abre http://127.0.0.1:8081.
 
+**Sin Docker en Linux, importar Qiskit Aer falla con "cannot allocate memory in static TLS block".** Las versiones recientes de Qiskit dejan muy poco espacio para una biblioteca que Aer carga después. Pon `GLIBC_TUNABLES=glibc.rtld.optional_static_tls=2048` antes del comando `uvx`. La imagen de Docker ya lo hace.
+
 ## Tips
 
 - **Cambiar el token.** En macOS y Linux ejecuta `JUPYTER_TOKEN=tutoken docker compose up`. En PowerShell de Windows ejecuta `$env:JUPYTER_TOKEN="tutoken"; docker compose up`.

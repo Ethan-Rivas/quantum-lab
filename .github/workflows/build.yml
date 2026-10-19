@@ -34,6 +34,14 @@ jobs:
           done
           exit 1
 
+      - name: Check whether Aer still needs the static TLS workaround
+        run: |
+          if docker compose run --rm --no-deps -e GLIBC_TUNABLES= notebook python -c "import qiskit; from qiskit_aer import AerSimulator"; then
+            message="Qiskit and Aer now import without GLIBC_TUNABLES; remove it from the Dockerfile (Qiskit/qiskit#17213)"
+            echo "::warning::$message"
+            echo "### $message" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Check that the Qanvas circuit builder answers
         run: |
           docker compose up -d qanvas

@@ -6,6 +6,11 @@ ENV PYTHONUNBUFFERED=1 \
     UV_SYSTEM_PYTHON=1 \
     UV_NO_CACHE=1
 
+# Qiskit 2.6 takes most of glibc's spare static TLS, leaving none for the libgomp
+# that Aer loads after it ("cannot allocate memory in static TLS block").
+# https://github.com/Qiskit/qiskit/issues/17213 (CI warns once this is no longer needed)
+ENV GLIBC_TUNABLES=glibc.rtld.optional_static_tls=2048
+
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Create the folder before copying into it. COPY --chmod also applies its mode to
