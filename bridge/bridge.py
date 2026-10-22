@@ -6,7 +6,9 @@ This service has no published port; only the containers in this compose project 
     GET  /health    what this bridge can do
     POST /notebook  {"name": "bell-qiskit", "notebook": {...}} saves notebooks/qanvas/<name>.ipynb
                     and answers with its path and the JupyterLab link that opens it
-    POST /run       {"qasm": "...", "shots": 1000} runs OpenQASM 2.0 on Qiskit Aer and answers counts
+    POST /run       {"qasm": "...", "shots": 1000} runs OpenQASM 2.0 on Qiskit Aer and answers counts;
+                    optional "noise" {"oneQubit": p1, "twoQubit": p2, "readout": r} adds Qanvas's noise
+                    model and "measured" [0, 3] picks the qubits counted, each from its final measurement
     POST /import    {"language": "qiskit", "code": "..."} runs the code and answers the circuit it
                     builds as OpenQASM 2.0
 
@@ -33,6 +35,7 @@ JUPYTER_TOKEN = os.environ.get("JUPYTER_TOKEN", "")
 MAX_BODY = 5 * 1024 * 1024
 MAX_COPIES = 999
 MAX_SHOTS = 100_000
+NOISE_LIMITS = {"oneQubit": 0.1, "twoQubit": 0.1, "readout": 0.2}
 RUNNER = Path(__file__).with_name("runner.py")
 TIME_LIMITS = {"run": 120, "import": 20}
 # A 24-qubit state takes 256 MB, so Aer runs one circuit at a time.
@@ -72,6 +75,15 @@ def save(notebook, name):
         except FileExistsError:
             continue
     raise OSError(f"{MAX_COPIES} notebooks named {name} already exist")
+
+
+def valid_noise(noise):
+    # bool is an int in Python, and true would otherwise pass as a probability of 1.
+    return (
+        isinstance(noise, dict)
+        and set(noise) == set(NOISE_LIMITS)
+        and all(type(noise[key]) in (int, float) and 0 <= noise[key] <= limit for key, limit in NOISE_LIMITS.items())
+    )
 
 
 def run_job(job):
@@ -116,7 +128,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(404, {"error": "not-found"})
         if jupyter_base(self.headers.get("Host")) is None:
             return self.reply(403, {"error": "forbidden"})
-        self.reply(200, {"version": VERSION, "features": ["notebook", "run", "import"], "maxQubits": 24})
+        self.reply(200, {"version": VERSION, "features": ["notebook", "run", "import", "noise"], "maxQubits": 24})
 
     def do_POST(self):
         handlers = {"/notebook": self.save_notebook, "/run": self.run_circuit, "/import": self.import_code}
@@ -144,9 +156,22 @@ class Handler(BaseHTTPRequestHandler):
         qasm, shots = body.get("qasm"), body.get("shots", 1000)
         if not isinstance(qasm, str) or not isinstance(shots, int) or not 1 <= shots <= MAX_SHOTS:
             return self.reply(400, {"error": "invalid"})
+        job = {"task": "run", "qasm": qasm, "shots": shots}
+        if "noise" in body:
+            noise = body["noise"]
+            if not valid_noise(noise):
+                return self.reply(400, {"error": {"code": "bad-request"}})
+            job["noise"] = noise
+        if "measured" in body:
+            measured = body["measured"]
+            if not isinstance(measured, list) or not all(type(q) is int for q in measured):
+                return self.reply(400, {"error": {"code": "bad-request"}})
+            job["measured"] = measured
         with AER:
-            answer = run_job({"task": "run", "qasm": qasm, "shots": shots})
-        self.reply(422 if "error" in answer else 200, answer)
+            answer = run_job(job)
+        if "error" not in answer:
+            return self.reply(200, answer)
+        self.reply(400 if answer["error"].get("code") == "bad-request" else 422, answer)
 
     def import_code(self, body, base):
         language, code = body.get("language"), body.get("code")

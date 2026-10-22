@@ -37,6 +37,27 @@ def test_aer_counts_only_the_measured_qubits():
     assert counts == {"counts": {"01": 50}, "measured": [0, 2]}
 
 
+def assert_ones_share(answer, p):
+    shots = sum(answer["counts"].values())
+    share = answer["counts"].get("1", 0) / shots
+    assert abs(share - p) < 3 * (p * (1 - p) / shots) ** 0.5, share
+
+
+def test_swap_gets_one_two_qubit_error():
+    qasm = QASM_HEADER + "gate swap a,b { cx a,b; cx b,a; cx a,b; }\nqreg q[2];\ncreg c[2];\nx q[0];\nswap q[0],q[1];\nmeasure q[0] -> c[0];\nmeasure q[1] -> c[1];\n"
+    assert_ones_share(run(qasm, 4000, {"oneQubit": 0, "twoQubit": 0.1, "readout": 0}, [1]), 0.95)
+
+
+def test_readout_error_reaches_a_condition():
+    qasm = QASM_HEADER + "qreg q[2];\ncreg c0[1];\ncreg c1[1];\nx q[0];\nmeasure q[0] -> c0[0];\nif(c0==1) x q[1];\nmeasure q[1] -> c1[0];\n"
+    assert_ones_share(run(qasm, 4000, {"oneQubit": 0, "twoQubit": 0, "readout": 0.2}, [1]), 0.8 * 0.8 + 0.2 * 0.2)
+
+
+def test_counted_qubit_is_read_after_its_last_gate():
+    qasm = QASM_HEADER + "qreg q[1];\ncreg c[1];\nh q[0];\nmeasure q[0] -> c[0];\nreset q[0];\nx q[0];\n"
+    assert run(qasm, 200, measured=[0]) == {"counts": {"1": 200}, "measured": [0]}
+
+
 def test_code_with_loops_imports_in_every_framework():
     expected = QuantumCircuit(3)
     for q in range(3):

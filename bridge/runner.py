@@ -4,6 +4,9 @@ Reads a JSON job on stdin and writes a JSON answer on stdout:
 
     {"task": "run", "qasm": "...", "shots": 1000}
         -> {"counts": {"0110": 512, ...}, "measured": [0, 1, 2, 3]}
+    {"task": "run", "qasm": "...", "shots": 1000, "noise": {"oneQubit": 0.01, "twoQubit": 0.02, "readout": 0.05},
+     "measured": [0, 3]}
+        -> {"counts": {"01": 512, ...}, "measured": [0, 3]}
     {"task": "import", "language": "qiskit" | "cirq" | "pyquil", "code": "..."}
         -> {"qasm": "OPENQASM 2.0; ..."}
 
@@ -22,6 +25,8 @@ warnings.filterwarnings("ignore")
 MAX_QUBITS = 24
 # The gates Qanvas has; anything else is rewritten into these by Qiskit's transpiler.
 QANVAS_GATES = ["h", "x", "y", "z", "s", "sdg", "t", "tdg", "rx", "ry", "rz", "p", "cx", "cz", "swap", "ccx", "measure"]
+# The same noise model as Qanvas's Qiskit export (src/code/qiskit.ts). Qanvas's OpenQASM writes P as u1.
+ONE_QUBIT_GATES = ["h", "x", "y", "z", "s", "sdg", "t", "tdg", "rx", "ry", "rz", "p", "u1"]
 
 
 class JobError(Exception):
@@ -30,24 +35,70 @@ class JobError(Exception):
         self.answer = {"code": code, **({"detail": str(detail)} if detail is not None else {}), **({"line": line} if line else {})}
 
 
-def run(qasm, shots):
+def noise_model(noise):
+    from qiskit_aer.noise import NoiseModel, ReadoutError, depolarizing_error
+
+    model = NoiseModel()
+    p1, p2, r = noise["oneQubit"], noise["twoQubit"], noise["readout"]
+    if p1 > 0:
+        model.add_all_qubit_quantum_error(depolarizing_error(p1, 1), ONE_QUBIT_GATES)
+    if p2 > 0:
+        model.add_all_qubit_quantum_error(depolarizing_error(p2, 2), ["cx", "cz", "swap"])
+        model.add_all_qubit_quantum_error(depolarizing_error(p2, 3), ["ccx"])
+    if r > 0:
+        model.add_all_qubit_readout_error(ReadoutError([[1 - r, r], [r, 1 - r]]))
+    return model
+
+
+def final_measurements(qc, measured):
+    """The classical bit holding each qubit's final measurement, measuring at the end the qubits that lack one."""
+    from qiskit import ClassicalRegister
+
+    if not measured or len(set(measured)) != len(measured) or not all(0 <= q < qc.num_qubits for q in measured):
+        raise JobError("bad-request")
+    last = {}
+    for instruction in qc.data:
+        for qubit in instruction.qubits:
+            last[qc.find_bit(qubit).index] = instruction
+    clbit_of = {}
+    for q in measured:
+        if q in last and last[q].operation.name == "measure":
+            clbit_of[q] = qc.find_bit(last[q].clbits[0]).index
+        else:
+            register = ClassicalRegister(1, f"counted{q}")
+            qc.add_register(register)
+            qc.measure(q, register[0])
+            clbit_of[q] = qc.find_bit(register[0]).index
+    return clbit_of
+
+
+def run(qasm, shots, noise=None, measured=None):
     from qiskit import qasm2, transpile
     from qiskit_aer import AerSimulator
 
+    # Plain loads keeps Qanvas's swap one instruction, so it gets one 2-qubit error rather than three.
     qc = qasm2.loads(qasm)
     if qc.num_qubits > MAX_QUBITS:
         raise JobError("too-many-qubits", qc.num_qubits)
-    clbit_of = {}
-    for instruction in qc.data:
-        if instruction.operation.name == "measure":
-            clbit_of[qc.find_bit(instruction.qubits[0]).index] = qc.find_bit(instruction.clbits[0]).index
-    if not clbit_of:
-        qc.measure_all()
-        clbit_of = {q: q for q in range(qc.num_qubits)}
-    measured = sorted(clbit_of)
+    if measured is not None:
+        clbit_of = final_measurements(qc, measured)
+    else:
+        clbit_of = {}
+        for instruction in qc.data:
+            if instruction.operation.name == "measure":
+                clbit_of[qc.find_bit(instruction.qubits[0]).index] = qc.find_bit(instruction.clbits[0]).index
+        if not clbit_of:
+            qc.measure_all()
+            clbit_of = {q: q for q in range(qc.num_qubits)}
+        measured = sorted(clbit_of)
 
     simulator = AerSimulator()
-    counts = simulator.run(transpile(qc, simulator), shots=shots).result().get_counts()
+    if noise is None:
+        counts = simulator.run(transpile(qc, simulator), shots=shots).result().get_counts()
+    else:
+        # Optimizing could merge or rewrite Qanvas's gates, and each must get its error exactly once.
+        circuit = transpile(qc, simulator, optimization_level=0)
+        counts = simulator.run(circuit, shots=shots, noise_model=noise_model(noise)).result().get_counts()
     # Bit order: Qiskit writes classical bit 0 last (rightmost), with a space between registers.
     # Qanvas lists the measured qubits with q0 first, so each key is rebuilt in that order.
     result = {}
@@ -161,7 +212,7 @@ def import_code(language, code):
 def main():
     job = json.loads(sys.stdin.read())
     try:
-        answer = run(job["qasm"], job["shots"]) if job["task"] == "run" else import_code(job["language"], job["code"])
+        answer = run(job["qasm"], job["shots"], job.get("noise"), job.get("measured")) if job["task"] == "run" else import_code(job["language"], job["code"])
     except JobError as error:
         answer = {"error": error.answer}
     except Exception as error:
