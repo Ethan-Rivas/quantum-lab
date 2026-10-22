@@ -58,6 +58,21 @@ def test_counted_qubit_is_read_after_its_last_gate():
     assert run(qasm, 200, measured=[0]) == {"counts": {"1": 200}, "measured": [0]}
 
 
+def test_noisy_cirq_export_imports_without_noise():
+    noisy = (
+        "import cirq\nimport numpy as np\nq = cirq.LineQubit.range(2)\n"
+        "one_qubit_noise = cirq.depolarize(3 / 4 * 0.01)\ntwo_qubit_noise = cirq.depolarize(15 / 16 * 0.02, n_qubits=2)\n"
+        "readout = 0.05\nconfusion = {(0,): np.array([[1 - readout, readout], [readout, 1 - readout]])}\n"
+        "circuit = cirq.Circuit(\n"
+        "    cirq.Moment(cirq.H(q[0])),\n    cirq.Moment(one_qubit_noise.on(q[0])),\n"
+        "    cirq.Moment(cirq.CNOT(q[0], q[1])),\n    cirq.Moment(two_qubit_noise.on(q[0], q[1])),\n"
+        '    cirq.Moment(cirq.measure(q[0], key="q0", confusion_map=confusion), cirq.measure(q[1], key="q1", confusion_map=confusion)),\n'
+        ")\n"
+    )
+    plain = 'import cirq\nq = cirq.LineQubit.range(2)\ncircuit = cirq.Circuit(cirq.H(q[0]), cirq.CNOT(q[0], q[1]), cirq.measure(q[0], key="q0"), cirq.measure(q[1], key="q1"))\n'
+    assert import_code("cirq", noisy) == import_code("cirq", plain)
+
+
 def test_code_with_loops_imports_in_every_framework():
     expected = QuantumCircuit(3)
     for q in range(3):

@@ -124,11 +124,26 @@ def from_qiskit(namespace):
     return find(namespace, QuantumCircuit, "qc")
 
 
+def without_noise(circuit):
+    """The circuit without the depolarizing channels and readout errors of Qanvas's noisy Cirq export."""
+    import cirq
+
+    def plain(op):
+        gate = op.without_classical_controls().gate if isinstance(op, cirq.ClassicallyControlledOperation) else op.gate
+        if isinstance(gate, cirq.DepolarizingChannel):
+            return None
+        if isinstance(gate, cirq.MeasurementGate) and gate.confusion_map:
+            return cirq.measure(*op.qubits, key=gate.mkey, invert_mask=gate.invert_mask)
+        return op
+
+    return cirq.Circuit(cirq.Moment(op for op in map(plain, moment) if op is not None) for moment in circuit)
+
+
 def from_cirq(namespace):
     import cirq
     from qiskit import qasm2
 
-    circuit = find(namespace, cirq.Circuit, "circuit")
+    circuit = without_noise(find(namespace, cirq.Circuit, "circuit"))
     qubits = sorted(circuit.all_qubits())
     if all(isinstance(q, cirq.LineQubit) for q in qubits):
         # LineQubit(k) is qubit k even when lower qubits have no gates, so they're kept.
