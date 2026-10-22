@@ -50,7 +50,7 @@ El notebook ejecuta este mismo circuito en Qiskit, Cirq y pyQuil y grafica los r
 | **Cirq** | El framework de Google. De más bajo nivel que Qiskit, y más cercano a cómo está organizado el hardware. |
 | **pyQuil** + **QVM** + **quilc** | El framework de Rigetti. quilc compila tu circuito a las compuertas que soporta un chip real, y la QVM lo simula. Cada uno corre en su propio contenedor. |
 | **JupyterLab** | La misma interfaz de notebooks en la que está basado Colab, con explorador de archivos, pestañas y terminal. |
-| **Qanvas** | Un constructor de circuitos donde arrastras compuertas. Ves los resultados en vivo, recorres el circuito paso a paso con explicaciones y, con un clic, lo abres en JupyterLab como un notebook de Qiskit, Cirq o pyQuil listo para correr. En el laboratorio también corre circuitos de hasta 24 qubits en Qiskit Aer y te deja editar directamente el código de Qiskit, Cirq o pyQuil. También está en línea en [ethan-rivas.github.io/qanvas](https://ethan-rivas.github.io/qanvas/). |
+| **Qanvas** | Un constructor de circuitos donde arrastras compuertas. Ves los resultados en vivo, recorres el circuito paso a paso con explicaciones y, con un clic, lo abres en JupyterLab como un notebook de Qiskit, Cirq o pyQuil listo para correr. En el laboratorio también corre circuitos de hasta 24 qubits en Qiskit Aer, incluso con ruido o con mediciones a mitad del circuito, y te deja editar directamente el código de Qiskit, Cirq o pyQuil. También está en línea en [ethan-rivas.github.io/qanvas](https://ethan-rivas.github.io/qanvas/). |
 
 ## ¿Vienes de Colab?
 
@@ -142,7 +142,7 @@ Cada lunes, GitHub Actions reconstruye el laboratorio con las versiones más rec
 ## Próximamente
 
 - [x] **Constructor visual de circuitos.** [Qanvas](https://github.com/Ethan-Rivas/qanvas/blob/main/README.es.md) corre en http://127.0.0.1:8080: arma circuitos de forma visual, recórrelos paso a paso con explicaciones y copia código de Qiskit, Cirq o pyQuil a un notebook.
-- [x] **Del constructor de circuitos al notebook.** Un botón "Abrir en notebook" en Qanvas que manda el circuito directo a JupyterLab, y correr circuitos más grandes con Qiskit Aer desde Qanvas.
+- [x] **Del constructor de circuitos al notebook.** Un botón "Abrir en notebook" en Qanvas que manda el circuito directo a JupyterLab, y correr circuitos más grandes con Qiskit Aer desde Qanvas, también con ruido y mediciones a mitad del circuito.
 - [ ] **App de escritorio.** Abrir el laboratorio en su propia ventana con [JupyterLab Desktop](https://github.com/jupyterlab/jupyterlab-desktop) en lugar de una pestaña del navegador.
 - [ ] **Más notebooks:** Deutsch–Jozsa, teletransportación cuántica y ruido.
 - [ ] **Ejecutar en una computadora cuántica real.** Un notebook que envía tu circuito a uno de los procesadores cuánticos de IBM con una cuenta gratuita, y compara los resultados con el simulador para que veas cómo se ve el ruido del hardware real.

@@ -50,7 +50,7 @@ The notebook runs this same circuit in Qiskit, Cirq and pyQuil and plots the res
 | **Cirq** | Google's framework. Lower level than Qiskit, and closer to how the hardware is laid out. |
 | **pyQuil** + **QVM** + **quilc** | Rigetti's framework. quilc compiles your circuit into the gates a real chip supports, and the QVM simulates it. Each runs in its own container. |
 | **JupyterLab** | The same notebook interface Colab is built on, with a file browser, tabs and a terminal. |
-| **Qanvas** | A drag-and-drop circuit builder. Watch the results update live, step through the circuit with explanations, and open it as a ready-to-run Qiskit, Cirq or pyQuil notebook in JupyterLab with one click. In the lab it also runs circuits of up to 24 qubits on Qiskit Aer and lets you edit the Qiskit, Cirq or pyQuil code directly. Also online at [ethan-rivas.github.io/qanvas](https://ethan-rivas.github.io/qanvas/). |
+| **Qanvas** | A drag-and-drop circuit builder. Watch the results update live, step through the circuit with explanations, and open it as a ready-to-run Qiskit, Cirq or pyQuil notebook in JupyterLab with one click. In the lab it also runs circuits of up to 24 qubits on Qiskit Aer, including ones with noise or with measurements partway through, and lets you edit the Qiskit, Cirq or pyQuil code directly. Also online at [ethan-rivas.github.io/qanvas](https://ethan-rivas.github.io/qanvas/). |
 
 ## Coming from Colab?
 
@@ -142,7 +142,7 @@ Every Monday, GitHub Actions rebuilds the lab with the latest library releases a
 ## Roadmap
 
 - [x] **Drag-and-drop circuit builder.** [Qanvas](https://github.com/Ethan-Rivas/qanvas) runs at http://127.0.0.1:8080: build circuits visually, step through them with explanations and copy Qiskit, Cirq or pyQuil code into a notebook.
-- [x] **From circuit builder to notebook.** An "Open in notebook" button in Qanvas that drops the circuit straight into JupyterLab, and running bigger circuits with Qiskit Aer from Qanvas.
+- [x] **From circuit builder to notebook.** An "Open in notebook" button in Qanvas that drops the circuit straight into JupyterLab, and running bigger circuits with Qiskit Aer from Qanvas, noise and measurements partway through included.
 - [ ] **Desktop app.** Open the lab in its own window with [JupyterLab Desktop](https://github.com/jupyterlab/jupyterlab-desktop) instead of a browser tab.
 - [ ] **More notebooks:** Deutsch–Jozsa, quantum teleportation and noise.
 - [ ] **Run on a real quantum computer.** A notebook that sends your circuit to one of IBM's quantum processors with a free account, then compares the results with the simulator so you can see what real hardware noise looks like.
